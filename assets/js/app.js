@@ -9,6 +9,7 @@ console.log('Script is OK! ༼ つ ◕_◕ ༽つ');
 
 const CRITICAL_ERROR_MESSAGE = "Please refresh the page and try again.";
 const CALCULATION_FAILED_ERROR_MESSAGE = "Please check the input values are reasonable";
+const ANNUAL_FEE_ERROR_MESSAGE = 'The annual fee must be less than the interest rate.'
 
 /** @param {Event} event */
 function forceNumeric(event) {
@@ -64,63 +65,78 @@ function getInterestPayRate(interestRate, compound) {
  * @returns {ResultList}
  */
 function getAnnualResults(monthlyResults) {
-    let annualResults = [];
+    const annualResults = [];
 
-    // TODO
-    // let totalInterest = 0;
-    // let totalWithdrawn = 0;
-
-    // let annualInterest = 0;
-    // let annualWithdrawals = 0;
-    // let annualStartBalance = undefined;
-
-    // monthlyResults.forEach((item, index) => {
-    //     totalInterest += item.interestPayment;
-    //     totalWithdrawn += item.withdrawal;
-    //     annualInterest += item.interestPayment;
-    //     annualWithdrawals += item.withdrawal;
-    //     if (annualStartBalance === undefined) {
-    //         annualStartBalance = item.startBalance;
-    //     }
-
-    //     if ((index + 1) % 12 === 0 || (index + 1) === monthlyResults.length) {
-    //         annualResults.push({
-    //             startBalance: annualStartBalance,
-    //             endBalance: item.endBalance,
-    //             interestPayment: annualInterest,
-    //             withdrawal: annualWithdrawals,
-    //             totalInterest,
-    //             totalWithdrawn
-    //         });
-    //         annualInterest = 0;
-    //         annualWithdrawals = 0;
-    //         annualStartBalance = undefined;
-    //     }
-    // });
+    monthlyResults.forEach((item, index) => {
+        if ((index + 1) % 12 === 0 || (index + 1) === monthlyResults.length) {
+            annualResults.push({
+                endBalance: item.endBalance,
+            });
+        }
+    });
 
     return annualResults;
 }
 
 /**
+ * @param {ResultList} results1 
+ * @param {ResultList} results2 
+ * @returns {ResultList}
+ */
+function getDifference(results1, results2) {
+    return results1.map((it, idx) => {
+        const endBalance2 = results2[idx].endBalance;
+        return {
+            endBalance1: it.endBalance,
+            endBalance2,
+            difference: Math.abs(it.endBalance - endBalance2)
+        }
+    });
+}
+
+/**
  * @param {number} principal
- * @param {number} annuityTerm
+ * @param {number} investmentTerm
  * @param {number} interestRate
  * @param {number} compound
- * @param {number} initialMonthlyIncome
+ * @param {number} initialContribution
  * @param {number} annualIncrease
+ * @param {number} annualFee
  */
 function calculateMonthlyResults(
     principal,
-    annuityTerm,
+    investmentTerm,
     interestRate,
     compound,
-    initialMonthlyIncome,
+    initialContribution,
     annualIncrease,
+    annualFee
 ) {
-    // TODO
-    const ratePayB = getInterestPayRate(interestRate, compound);
-
+    const rateIncFee = getInterestPayRate(interestRate - annualFee, compound);
+    const months = Math.max(investmentTerm * 12, 1);
     const results = [];
+
+    let contribution = initialContribution;
+    let balance = principal;
+    for (let i = 1; i <= months; i++) {
+        const startBalance = balance;
+
+        balance += contribution;
+
+        const interestPayment = balance * rateIncFee;
+        balance += interestPayment;
+
+        results.push({
+            startBalance,
+            endBalance: balance,
+            interestPayment,
+            contributionAmount: contribution
+        });
+
+        if (annualIncrease && i % 12 === 0) {
+            contribution *= 1 + annualIncrease / 100;
+        }
+    }
 
     return results;
 }
@@ -257,31 +273,26 @@ const primaryChartData = {
     ],
     datasets: [
         {
-            label: 'Placeholder 1',
-            data: [
-                1011487.7542384604,
-            ],
+            label: 'End Balance 1',
+            data: [],
             stack: "1",
-            backgroundColor: colors.primary,
-            borderColor: colors.primary,
+            backgroundColor: colors.secondary,
+            borderColor: colors.secondary,
+
         },
         {
-            label: 'Placeholder 2',
-            data: [
-                80415.15423845973,
-            ],
+            label: 'End Balance 2',
+            data: [],
             stack: "2",
             backgroundColor: colors.primaryLight,
             borderColor: colors.primaryLight,
         },
         {
-            label: 'Placeholder 3',
-            data: [
-                68927.39999999998,
-            ],
+            label: 'Difference',
+            data: [],
             stack: "3",
-            backgroundColor: colors.secondary,
-            borderColor: colors.secondary,
+            backgroundColor: colors.primary,
+            borderColor: colors.primary,
         }
     ],
 };
@@ -405,9 +416,10 @@ const input = {
         else if (Number(this.value) < compare) this.error(this.elementId, errorText);
         return this;
     },
+    /** @param {number | string} compare */
     lt: function (compare = 0, errorText = `The ${this.elementId} must be less than ${compare}.`) {
-        if (isNaN(compare)) {
-            const element = /** @type {?HTMLInputElement} */ (document.getElementById(this.elementId));
+        if (typeof compare !== 'number') {
+            const element = /** @type {?HTMLInputElement} */ (document.getElementById(compare));
             compare = Number(element?.value);
         }
         if (this.value === '' || isNaN(Number(this.value)))
@@ -506,10 +518,10 @@ const input = {
     }
 }
 
-/** @param {ResultList} monthlyResults */
-const displayResultSummary = (monthlyResults) => {
+/** @param {ResultList} results */
+const displayResultSummary = (results) => {
     // TODO
-    const main = 'Placeholder Main';
+    const main = `Difference: ${currencyFormat(results[results.length - 1].difference)}`;
     const smallA = 'Placeholder A';
     const smallB = 'Placeholder B';
     const smallC = 'Placeholder C';
@@ -523,16 +535,15 @@ const displayResultSummary = (monthlyResults) => {
 /** @param {ResultList} annualResults */
 const displayAnnualResultsTable = (annualResults) => {
     let annualResultsHtml = '';
-    // TODO
-    // annualResults.forEach((r, index) => {
-    //     annualResultsHtml += `<tr>
-    //         <td class="text-center">${index + 1}</td>
-    //         <td>${currencyFormat(r.startBalance)}</td>
-    //         <td>${currencyFormat(r.interestPayment)}</td>
-    //         <td>${currencyFormat(r.withdrawal)}</td>
-    //         <td>${currencyFormat(r.endBalance)}</td>
-    //     </tr>`;
-    // });
+
+    annualResults.forEach((r, index) => {
+        annualResultsHtml += `<tr>
+            <td class="text-center">${index + 1}</td>
+            <td>${currencyFormat(r.endBalance1)}</td>
+            <td>${currencyFormat(r.endBalance2)}</td>
+            <td>${currencyFormat(r.difference)}</td>
+        </tr>`;
+    });
 
     $annualResultsTable.innerHTML = annualResultsHtml;
 }
@@ -540,22 +551,21 @@ const displayAnnualResultsTable = (annualResults) => {
 /** @param {ResultList} monthlyResults */
 const displayMonthlyResultsTable = (monthlyResults) => {
     let monthlyResultsHtml = '';
-    // TODO
-    // monthlyResults.forEach((item, index) => {
-    //     monthlyResultsHtml += `<tr>
-    //         <td class="text-center">${index + 1}</td>
-    //         <td>${currencyFormat(item.startBalance)}</td>
-    //         <td>${currencyFormat(item.interestPayment)}</td>
-    //         <td>${currencyFormat(item.withdrawal)}</td>
-    //         <td>${currencyFormat(item.endBalance)}</td>
-    //     </tr>`;
 
-    //     if ((index + 1) % 12 === 0 || (index + 1) === monthlyResults.length) {
-    //         const year = Math.ceil((index + 1) / 12);
-    //         const title = `Year #${year} End`;
-    //         monthlyResultsHtml += `<th class="white text-center" colspan="6">${title}</th>`;
-    //     }
-    // });
+    monthlyResults.forEach((item, index) => {
+        monthlyResultsHtml += `<tr>
+            <td class="text-center">${index + 1}</td>
+            <td>${currencyFormat(item.endBalance1)}</td>
+            <td>${currencyFormat(item.endBalance2)}</td>
+            <td>${currencyFormat(item.difference)}</td>
+        </tr>`;
+
+        if ((index + 1) % 12 === 0 || (index + 1) === monthlyResults.length) {
+            const year = Math.ceil((index + 1) / 12);
+            const title = `Year #${year} End`;
+            monthlyResultsHtml += `<th class="white text-center" colspan="6">${title}</th>`;
+        }
+    });
 
     $monthlyResultsTable.innerHTML = monthlyResultsHtml;
 }
@@ -565,11 +575,10 @@ const displayMonthlyResultsTable = (monthlyResults) => {
  * @param {Chart} primaryChart
  */
 const displayPrimaryResultsChart = (annualResults, primaryChart) => {
-    // TODO: display results
-    // primaryChart.data.labels = annualResults.map((_, idx) => idx + 1);
-    // primaryChart.data.datasets[0].data = annualResults.map(it => it.endBalance);
-    // primaryChart.data.datasets[1].data = annualResults.map(it => it.totalInterest);
-    // primaryChart.data.datasets[2].data = annualResults.map(it => it.totalWithdrawn);
+    primaryChart.data.labels = annualResults.map((_, idx) => idx + 1);
+    primaryChart.data.datasets[0].data = annualResults.map(it => it.endBalance1);
+    primaryChart.data.datasets[1].data = annualResults.map(it => it.endBalance2);
+    primaryChart.data.datasets[2].data = annualResults.map(it => it.difference);
 
     primaryChart.reset();
     primaryChart.update();
@@ -584,13 +593,16 @@ const getInputs = () => {
     const compoundIdx = input.get($compound.id).index().val();
     const monthlyContribution = input.get($monthlyContribution.id).val();
     const annualIncrease = input.get($annualIncrease.id).val();
-    const annualFee1 = input.get($annualFee1.id).val();
-    const annualFee2 = input.get($annualFee2.id).val();
+    const annualFee1 = input.get($annualFee1.id).lt($interestRate.id, ANNUAL_FEE_ERROR_MESSAGE).val();
+    const annualFee2 = input.get($annualFee2.id).lt($interestRate.id, ANNUAL_FEE_ERROR_MESSAGE).val();
 
     const compound = getCompoundFromIndex(compoundIdx);
 
+    if (!input.valid()) {
+        throw new Error("Invalid input");
+    }
+
     if (
-        !input.valid() ||
         principal === null ||
         investmentTerm === null ||
         interestRate === null ||
@@ -630,18 +642,33 @@ const runApp = (primaryChart) => {
         annualFee2
     } = getInputs();
 
-    const monthlyResults = calculateMonthlyResults(
+    const monthlyResults1 = calculateMonthlyResults(
         principal,
         investmentTerm,
         interestRate,
         compound,
         monthlyContribution,
-        annualIncrease
+        annualIncrease,
+        annualFee1
     );
-    const annualResults = getAnnualResults(monthlyResults);
 
+    const monthlyResults2 = calculateMonthlyResults(
+        principal,
+        investmentTerm,
+        interestRate,
+        compound,
+        monthlyContribution,
+        annualIncrease,
+        annualFee2
+    );
 
-    displayResultSummary(monthlyResults);
+    const annualResults1 = getAnnualResults(monthlyResults1);
+    const annualResults2 = getAnnualResults(monthlyResults2);
+
+    const monthlyResults = getDifference(monthlyResults1, monthlyResults2);
+    const annualResults = getDifference(annualResults1, annualResults2);
+
+    displayResultSummary(annualResults);
     displayMonthlyResultsTable(monthlyResults);
     displayAnnualResultsTable(annualResults);
     displayPrimaryResultsChart(annualResults, primaryChart);
