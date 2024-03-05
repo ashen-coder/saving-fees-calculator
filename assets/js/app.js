@@ -186,14 +186,20 @@ const customDataLabels = {
     },
 };
 
+const TRANSPARENCY = '0.5';
+
 const colors = {
     primary: '#162953',
     primaryLight: '#25468d',
-    secondary: '#00ABD0'
+    secondary: '#00ABD0',
+    secondaryTransparent: `rgba(0, 171, 208, ${TRANSPARENCY})`,
+    primaryLightTransparent: `rgba(37, 70, 141, ${TRANSPARENCY})`,
+    primaryTransparent: `rgba(22, 41, 83, ${TRANSPARENCY})`,
 };
 
 const tooltip = {
     enabled: false,
+    itemSort: (a, b) => a.datasetIndex - b.datasetIndex,
     external: function (context) {
         let tooltipEl = document.getElementById('chartjs-tooltip');
 
@@ -275,24 +281,24 @@ const primaryChartData = {
         {
             label: 'End Balance 1',
             data: [],
-            stack: "1",
-            backgroundColor: colors.secondary,
-            borderColor: colors.secondary,
-
+            backgroundColor: colors.secondaryTransparent,
+            borderColor: colors.secondaryTransparent,
+            order: 1
         },
         {
             label: 'End Balance 2',
             data: [],
-            stack: "2",
-            backgroundColor: colors.primaryLight,
-            borderColor: colors.primaryLight,
+            backgroundColor: colors.primaryLightTransparent,
+            borderColor: colors.primaryLightTransparent,
+            order: 1
         },
         {
             label: 'Difference',
             data: [],
-            stack: "3",
             backgroundColor: colors.primary,
             borderColor: colors.primary,
+            type: 'line',
+            order: 0
         }
     ],
 };
@@ -521,7 +527,7 @@ const input = {
 /** @param {ResultList} results */
 const displayResultSummary = (results) => {
     // TODO
-    const main = `Difference: ${currencyFormat(results[results.length - 1].difference)}`;
+    const main = `Difference in investment amount: ${currencyFormat(results[results.length - 1].difference)}`;
     const smallA = 'Placeholder A';
     const smallB = 'Placeholder B';
     const smallC = 'Placeholder C';
@@ -688,7 +694,7 @@ import("./lib/chartjs/chart.js").then(({ Chart, registerables }) => {
     Chart.register(...registerables);
 
     const primaryChart = new Chart($primaryChart, {
-        type: 'line',
+        type: 'bar',
         data: primaryChartData,
         options: {
             response: true,
@@ -705,13 +711,11 @@ import("./lib/chartjs/chart.js").then(({ Chart, registerables }) => {
             },
             scales: {
                 y: {
-                    stacked: true,
                     ticks: {
                         callback: (it) => currencyFormat(it, ' '),
                     },
                 },
                 x: {
-                    stacked: true,
                     ticks: {
                         callback: function (value, index, ticks) {
                             return value + 1;
