@@ -116,3 +116,7 @@ span {
 .related-item-hidden {
     display: none !important;
 }
+
+.op-50 {
+    opacity: 0.5;
+}
