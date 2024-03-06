@@ -276,25 +276,107 @@ const secondaryChartData = [
 const primaryChartData = {
     labels: [
         1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
     ],
     datasets: [
         {
-            label: 'End Balance 1',
-            data: [],
+            label: 'Investment A',
+            data: [
+                1079402.8580704,
+                1164745.0229034629,
+                1256455.3383878646,
+                1354992.922757485,
+                1460849.2738141618,
+                1574550.519025797,
+                1696659.8203966396,
+                1827779.944679028,
+                1968556.010214018,
+                2119678.4224548554,
+                2281886.011045858,
+                2455969.3822031356,
+                2642774.501076602,
+                2843206.5197688662,
+                3058233.8677500677,
+                3288892.6225430905,
+                3536291.1797658494,
+                3801615.2429112494,
+                4086133.1546271495,
+                4391201.592733414
+            ],
             backgroundColor: colors.secondaryTransparent,
             borderColor: colors.secondaryTransparent,
             order: 1
         },
         {
-            label: 'End Balance 2',
-            data: [],
+            label: 'Investment B',
+            data: [
+                1058236.3848764545,
+                1119762.9670769225,
+                1184761.6390904083,
+                1253424.1865850163,
+                1325952.819752369,
+                1402560.7329045604,
+                1483472.693813725,
+                1568925.6643622818,
+                1659169.4541541513,
+                1754467.4088235293,
+                1855097.134868785,
+                1961351.2629346673,
+                2073538.2515665733,
+                2191983.2335665347,
+                2317028.907191915,
+                2449036.474554896,
+                2588386.6297041974,
+                2735480.598999948,
+                2890741.2365291584,
+                3054614.1774526145
+            ],
             backgroundColor: colors.primaryLightTransparent,
             borderColor: colors.primaryLightTransparent,
             order: 1
         },
         {
             label: 'Difference',
-            data: [],
+            data: [
+                21166.473193945596,
+                44982.05582654034,
+                71693.6992974563,
+                101568.73617246863,
+                134896.4540617927,
+                171989.78612123663,
+                213187.12658291473,
+                258854.2803167461,
+                309386.5560598667,
+                365211.01363132615,
+                426788.87617707276,
+                494618.11926846835,
+                569236.2495100286,
+                651223.2862023315,
+                741204.9605581528,
+                839856.1479881946,
+                947904.550061652,
+                1066134.6439113016,
+                1195391.918097991,
+                1336587.4152807994
+            ],
             backgroundColor: colors.primary,
             borderColor: colors.primary,
             type: 'line',
@@ -321,10 +403,9 @@ const $annualIncrease = /** @type {HTMLElement} */ (document.getElementById('ann
 const $annualFee1 = /** @type {HTMLElement} */ (document.getElementById('annual-fee-1'));
 const $annualFee2 = /** @type {HTMLElement} */ (document.getElementById('annual-fee-2'));
 
-const $main = /** @type {HTMLElement} */ (document.getElementById('result-main-0'));
-const $smallA = /** @type {HTMLElement} */ (document.getElementById('result-small-A-0'));
-const $smallB = /** @type {HTMLElement} */ (document.getElementById('result-small-B-0'));
-const $smallC = /** @type {HTMLElement} */ (document.getElementById('result-small-C-0'));
+const $resultA = /** @type {HTMLElement} */ (document.getElementById('result-A'));
+const $resultB = /** @type {HTMLElement} */ (document.getElementById('result-B'));
+const $resultC = /** @type {HTMLElement} */ (document.getElementById('result-C'));
 
 const input = {
     value: /** @type {*} */ (null),
@@ -526,16 +607,10 @@ const input = {
 
 /** @param {ResultList} results */
 const displayResultSummary = (results) => {
-    // TODO
-    const main = `Difference in investment amount: ${currencyFormat(results[results.length - 1].difference)}`;
-    const smallA = 'Placeholder A';
-    const smallB = 'Placeholder B';
-    const smallC = 'Placeholder C';
-
-    $main.innerHTML = main;
-    $smallA.innerHTML = smallA;
-    $smallB.innerHTML = smallB;
-    $smallC.innerHTML = smallC;
+    const finalResult = results[results.length - 1];
+    $resultA.innerHTML = `Investment A: ${currencyFormat(finalResult.endBalance1)}`;
+    $resultB.innerHTML = `Investment B: ${currencyFormat(finalResult.endBalance2)}`;
+    $resultC.innerHTML = `Difference in Investment A vs B: ${currencyFormat(finalResult.difference)}`;
 }
 
 /** @param {ResultList} annualResults */
