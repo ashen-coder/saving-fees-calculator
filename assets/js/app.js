@@ -366,10 +366,11 @@ const $errorBox = /** @type {HTMLElement} */ (document.getElementById('error-box
 const $errorList = /** @type {HTMLElement} */ (document.getElementById('error-list'));
 const $annualResultsTable = /** @type {HTMLElement} */ (document.getElementById('annual-results'));
 const $monthlyResultsTable = /** @type {HTMLElement} */ (document.getElementById('monthly-results'));
-
+const $monthlyFigures = /** @type {HTMLElement} */ (document.getElementById('monthly-figures'));
 
 const $primaryChart = /** @type {HTMLCanvasElement} */ (document.getElementById('primary-chart'));
 const $calculateBtn = /** @type {HTMLButtonElement} */ (document.getElementById('calculate-btn'));
+const $showMonthlyFigures = /** @type {HTMLInputElement} */ (document.getElementById('show-monthly-figures'));
 
 const $principal = /** @type {HTMLElement} */ (document.getElementById('principal'));
 const $investmentTerm = /** @type {HTMLElement} */ (document.getElementById('investment-term'));
@@ -738,6 +739,14 @@ const runApp = (primaryChart) => {
     $annualFee1,
     $annualFee2,
 ].forEach(input => input?.addEventListener('input', forceNumeric));
+
+$showMonthlyFigures.addEventListener('change', () => {
+    if ($showMonthlyFigures.checked) {
+        $monthlyFigures.classList.remove('hidden');
+    } else {
+        $monthlyFigures.classList.add('hidden');
+    }
+});
 
 
 import("./lib/chartjs/chart.js").then(({ Chart, registerables }) => {
