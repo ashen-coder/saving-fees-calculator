@@ -141,29 +141,6 @@ function calculateMonthlyResults(
     return results;
 }
 
-/** @param {?number} compoundIndex */
-function getCompoundFromIndex(compoundIndex) {
-    switch (compoundIndex) {
-        case 0:
-            return 12;
-        case 1:
-            return 2;
-        case 2:
-            return 4;
-        case 3:
-            return 24;
-        case 4:
-            return 26;
-        case 5:
-            return 52;
-        case 6:
-            return 365;
-        default:
-            input.error([], CRITICAL_ERROR_MESSAGE, true);
-            throw new Error(`Invalid compound index: ${compoundIndex}`);
-    }
-}
-
 const customDataLabels = {
     id: 'customDataLabel',
     afterDatasetDraw(chart, args, pluginOptions) {
@@ -397,7 +374,6 @@ const $calculateBtn = /** @type {HTMLButtonElement} */ (document.getElementById(
 const $principal = /** @type {HTMLElement} */ (document.getElementById('principal'));
 const $investmentTerm = /** @type {HTMLElement} */ (document.getElementById('investment-term'));
 const $interestRate = /** @type {HTMLElement} */ (document.getElementById('interest-rate'));
-const $compound = /** @type {HTMLElement} */ (document.getElementById('compound'));
 const $monthlyContribution = /** @type {HTMLElement} */ (document.getElementById('monthly-contribution'));
 const $annualIncrease = /** @type {HTMLElement} */ (document.getElementById('annual-increase'));
 const $annualFee1 = /** @type {HTMLElement} */ (document.getElementById('annual-fee-1'));
@@ -671,13 +647,12 @@ const getInputs = () => {
     const principal = input.get($principal.id).val();
     const investmentTerm = input.get($investmentTerm.id).val();
     const interestRate = input.get($interestRate.id).val();
-    const compoundIdx = input.get($compound.id).index().val();
     const monthlyContribution = input.get($monthlyContribution.id).val();
     const annualIncrease = input.get($annualIncrease.id).val();
     const annualFee1 = input.get($annualFee1.id).lt($interestRate.id, ANNUAL_FEE_ERROR_MESSAGE).val();
     const annualFee2 = input.get($annualFee2.id).lt($interestRate.id, ANNUAL_FEE_ERROR_MESSAGE).val();
 
-    const compound = getCompoundFromIndex(compoundIdx);
+    const compound = 12;
 
     if (!input.valid()) {
         throw new Error("Invalid input");
